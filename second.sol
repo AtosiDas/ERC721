@@ -48,23 +48,22 @@ contract MyNFT is ERC721URIStorage, Ownable(msg.sender) {
     uint256 public price = 0.02 ether;
 
     function mintNFT(
-        string memory tokenURI,
+        uint256 tokenID,
         uint256 royaltyPercentage
-    ) public payable returns (uint256) {
+    ) public payable {
         require(royaltyPercentage <= 100, "Royalty percentage too high");
         require(msg.value == price);
-        _tokenIds.increment();
-        uint256 newItemId = _tokenIds.current();
-        _mint(msg.sender, newItemId);
-        _setTokenURI(newItemId, tokenURI);
+        //_tokenIds.increment();
+        // uint256 newItemId = _tokenIds.current();
+        _mint(msg.sender, tokenID);
+        // _setTokenURI(newItemId, tokenURI);
 
-        _royalties[newItemId] = RoyaltyInfo({
+        _royalties[tokenID] = RoyaltyInfo({
             creator: msg.sender,
             royaltyPercentage: royaltyPercentage
         });
 
-        emit NFTMinted(newItemId, msg.sender, royaltyPercentage);
-        return newItemId;
+        emit NFTMinted(tokenID, msg.sender, royaltyPercentage);
     }
 
     function changePrice(uint256 _price) external onlyOwner {
