@@ -3,14 +3,13 @@ pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
 contract MyNFT is ERC721URIStorage, Ownable(msg.sender) {
     // using Counters for Counters.Counter;
     // Counters.Counter private _tokenIds;
     uint256 public defaultPrice;
-
+    address Owner;
     struct RoyaltyInfo {
         address creator;
         uint256 royaltyPercentage; // value will be 0 to 100
@@ -22,7 +21,7 @@ contract MyNFT is ERC721URIStorage, Ownable(msg.sender) {
     mapping(address => uint256) shares;
     mapping(address => bool) status;
     mapping(uint256 => RoyaltyInfo) private _royalties;
-    mapping(uint256 => uint256) TokenPrice;
+    mapping(uint256 => uint256) public TokenPrice;
 
     event NFTMinted(
         uint256 tokenId,
@@ -47,6 +46,10 @@ contract MyNFT is ERC721URIStorage, Ownable(msg.sender) {
         shares[msg.sender] = 100;
         status[msg.sender] = true;
         defaultPrice = _price;
+        for (uint256 i = 1; i <= 2000; i++) {
+            TokenPrice[i] = defaultPrice;
+        }
+        Owner = msg.sender;
     }
 
     function mintNFT(
@@ -54,7 +57,7 @@ contract MyNFT is ERC721URIStorage, Ownable(msg.sender) {
         uint256 royaltyPercentage
     ) public payable {
         require(royaltyPercentage <= 100, "Royalty percentage too high");
-        require(msg.value == defaultPrice);
+        require(msg.value == TokenPrice[tokenID]);
         //_tokenIds.increment();
         // uint256 newItemId = _tokenIds.current();
         _mint(msg.sender, tokenID);
@@ -64,7 +67,6 @@ contract MyNFT is ERC721URIStorage, Ownable(msg.sender) {
             creator: msg.sender,
             royaltyPercentage: royaltyPercentage
         });
-        TokenPrice[tokenID] = defaultPrice;
         emit NFTMinted(tokenID, msg.sender, royaltyPercentage);
     }
 
@@ -134,7 +136,10 @@ contract MyNFT is ERC721URIStorage, Ownable(msg.sender) {
     }
 
     function changePriceOfNFT(uint256 _tokenID, uint256 _price) public {
-        require(ownerOf(_tokenID) == msg.sender, "Yor are not eligible.");
+        require(
+            Owner == msg.sender || ownerOf(_tokenID) == msg.sender,
+            "Yor are not eligible."
+        );
         TokenPrice[_tokenID] = _price;
         emit PriceChange(_tokenID, _price);
     }
