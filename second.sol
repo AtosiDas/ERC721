@@ -3,16 +3,13 @@ pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
 
 contract MyNFT is ERC721URIStorage, Ownable(msg.sender) {
-    // using Counters for Counters.Counter;
-    // Counters.Counter private _tokenIds;
     uint256 public defaultPrice;
     address Owner;
     struct RoyaltyInfo {
         address creator;
-        uint256 royaltyPercentage; // value will be 0 to 100
+        uint256 royaltyPercentage; // value will be between 0 and 100
     }
 
     address[] public shareHolders;
@@ -46,22 +43,21 @@ contract MyNFT is ERC721URIStorage, Ownable(msg.sender) {
         shares[msg.sender] = 100;
         status[msg.sender] = true;
         defaultPrice = _price;
-        for (uint256 i = 1; i <= 2000; i++) {
-            TokenPrice[i] = defaultPrice;
-        }
+        // for(uint256 i = 1; i <= 2000; i++){
+        //     TokenPrice[i] = defaultPrice;
+        // }
         Owner = msg.sender;
     }
 
     function mintNFT(
         uint256 tokenID,
+        string memory tokenURI,
         uint256 royaltyPercentage
     ) public payable {
         require(royaltyPercentage <= 100, "Royalty percentage too high");
-        require(msg.value == TokenPrice[tokenID]);
-        //_tokenIds.increment();
-        // uint256 newItemId = _tokenIds.current();
+        require(msg.value == defaultPrice);
         _mint(msg.sender, tokenID);
-        // _setTokenURI(newItemId, tokenURI);
+        _setTokenURI(tokenID, tokenURI);
 
         _royalties[tokenID] = RoyaltyInfo({
             creator: msg.sender,
@@ -101,7 +97,7 @@ contract MyNFT is ERC721URIStorage, Ownable(msg.sender) {
         shares[msg.sender] -= _share;
     }
 
-    function sharedWithdrawl() public payable onlyOwner {
+    function sharedWithdrawal() public payable onlyOwner {
         uint256 balance = address(this).balance;
         for (uint256 i = 0; i < shareHolders.length; i++) {
             payable(shareHolders[i]).transfer(
